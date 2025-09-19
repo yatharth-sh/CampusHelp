@@ -1,70 +1,119 @@
+```markdown
+# CampusHelp · Student Helpdesk Chat
 
+A lightweight, responsive student helpdesk built on Gemini 2.5 Flash with Google Search grounding, intent routing for common topics, file‑aware Q&A, and a clean minimal composer UI.  
 
-### Overview
-CampusHelp is a lightweight student helpdesk chat app built on Gemini 2.5 Flash with Google Search grounding, responsive UI, intent routing, and human handoff options.
-It supports drag-and-drop or picker-based file uploads so students can ask questions about their own PDFs and images.
+![Vite](https://img.shields.io/badge/Vite-React-646CFF?logo=vite&logoColor=white) ![Gemini](https://img.shields.io/badge/Google%20GenAI-Gemini%202.5%20Flash-1a73e8?logo=google) ![License](https://img.shields.io/badge/License-Choose%20one-informational) ![PRs](https://img.shields.io/badge/PRs-welcome-brightgreen)
 
-### Features
-- Minimal pill-style composer with auto-resizing textarea and icon buttons for attach and send.
-- Files: add via picker or drag-and-drop overlay; ask questions grounded in uploaded PDFs/images.
-- Intent routing: auto-detect or manually select Fees, Scholarships, Timetable, Housing to steer responses.
-- Human handoff: always-available “Contact staff” menu plus fallback card with Email copy-to-clipboard, WhatsApp open, and optional ticket webhook.
-- Google Search grounding enabled for fresher answers, with safety settings applied.
-- Polished, responsive layout with centered branding and comfortable transcript gutters.
+---
 
-### Tech stack
-- React with Vite for the frontend.
-- Google GenAI SDK using the gemini-2.5-flash model.
-- In-browser Files API from the SDK for media/PDF handling.
+## Table of Contents
+- Overview
+- Features
+- Demo
+- Quick Start
+- Environment Variables
+- Usage
+- Architecture
+- Folder Structure
+- Roadmap
+- Contributing
+- License
+- Acknowledgements
 
-### Quick start
-- Prerequisites: Node.js 16+ and a Gemini API key.
-- Install dependencies: run npm install in the project root.
-- Create an .env file and add required variables shown below.
-- Start the dev server with your usual Vite script and open the printed local address.
+## Overview
+CampusHelp answers questions about academics, housing, fees, scholarships, calendars, and student life, with a minimal interface that scales cleanly across devices and supports file‑grounded questions on PDFs and images.  
 
-### Environment variables
-Place the following in .env (or .env.local) at the project root.[2]
-- VITE_GEMINI_API_KEY=your_api_key_here.[1]
-- VITE_HELPDESK_EMAIL=helpdesk@university.edu (used for copy-to-clipboard Email in “Contact staff”).
-- VITE_WHATSAPP_NUMBER=15551234567 (international format without plus; opens a WhatsApp thread with context).
-- VITE_HELPDESK_WEBHOOK_URL=https://your.ticket.endpoint (optional; POSTs JSON with last message, transcript, and intent).
+## Features
+- Minimal pill composer with auto‑resizing textarea and icon buttons for attach and send.  
+- Drag‑and‑drop overlay appears only while dragging; otherwise the UI stays clutter‑free.  
+- File‑aware Q&A using the SDK Files API for PDFs and common image formats.  
+- Intent routing with lightweight keyword detection and manual override for Fees, Scholarships, Timetable, Housing.  
+- Human handoff: always‑available “Contact staff” menu, plus a fallback card on low‑confidence or empty/error responses.  
+- Email action copies the helpdesk address to the clipboard for maximum reliability, with theme‑matching toasts.  
+- WhatsApp action opens a prefilled thread, and an optional webhook can create tickets with transcript context.  
+- Google Search grounding enabled for fresher, more reliable answers with safety settings applied.  
+- Centered branding, comfortable transcript gutters, and responsive spacing via clamp for a balanced look.  
 
-### Scripts
-- npm install to install dependencies.
-- npm run dev to start development mode.
-- npm run build to generate a production bundle if you have the default Vite setup.
+## Demo
+- Local preview: run, open the app, and try uploading a PDF or image, then ask follow‑up questions about the content.  
+- Add or drag a file to see the overlay; use the intent selector or leave it on Auto; try the Contact menu.  
 
-### How it works
-- Each turn can include uploaded file parts, enabling the model to reference student-provided content directly.
-- The router selects a specialized system instruction per intent and softly augments the user prompt for domain relevance.
-- Manual intent selection overrides auto-detection for predictable routing.
-- If routing confidence is low or responses are empty/errored, a fallback card offers staff contact options.
+> Add screenshots/GIFs here (e.g., /docs/screenshot-*.png).  
 
-### UI highlights
-- Header: CampusHelp logo/title is centered regardless of right-side controls and wraps neatly on small screens.
-- Transcript: generous container padding and per-message gutters prevent bubbles from hugging edges.
-- Composer: compact, icon-forward layout with accessible labels and keyboard send on Enter.
-- Drag-and-drop: a clean full-window overlay appears only while dragging files.
-- Toasts: theme-matching confirmations for actions like copying helpdesk email or submitting a ticket.
+## Quick Start
+Prerequisites: Node.js 16+ and a Google Gemini API key.  
 
-### Configuration notes
-- Email action copies VITE_HELPDESK_EMAIL to clipboard for reliability across environments without a mail client.
-- WhatsApp action opens a prefilled chat using VITE_WHATSAPP_NUMBER if configured.
-- Ticket creation posts a JSON payload with lastMessage, transcript preview, intent selection/detection, and timestamp.
+1. Install
+   ```
+   npm install
+   ```
+2. Configure environment (see “Environment Variables”).  
+3. Run in development
+   ```
+   npm run dev
+   ```
+4. Build for production
+   ```
+   npm run build
+   ```
+5. Preview production build
+   ```
+   npm run preview
+   ```
 
-### Troubleshooting
-- Email button shows “not configured”: set VITE_HELPDESK_EMAIL and restart the dev server.
-- Attachments not appearing: ensure file types are among the accepted set (PDF and common image formats).
-- No response or empty output: rephrase the query, select a manual intent, or use the handoff card to contact staff.
+## Environment Variables
+Create a .env (or .env.local) in the project root:  
+- VITE_GEMINI_API_KEY=your_api_key_here  
+- VITE_HELPDESK_EMAIL=helpdesk@university.edu  
+- VITE_WHATSAPP_NUMBER=15551234567  (international format, no plus)  
+- VITE_HELPDESK_WEBHOOK_URL=https://your.ticket.endpoint  (optional)  
 
-### Security and privacy
-- Avoid putting secrets or sensitive PII in chat prompts or uploaded files when not necessary.
-- Review institution policies before enabling webhook-based ticket creation and ensure HTTPS endpoints.
+Notes:  
+- Email action copies VITE_HELPDESK_EMAIL to clipboard and shows a toast.  
+- WhatsApp opens a thread with the last message and recent transcript.  
+- Webhook receives JSON: lastMessage, transcript preview, selected/detected intent and confidence, timestamp.  
 
-### Project structure (high level)
-- src/ChatWithGemini.jsx: main UI, model streaming, intent router, files, contact actions, and toasts.
-- Public and config files as per a typical Vite React project.
+## Usage
+- Composer: type to auto‑expand, Enter to send, Shift+Enter for newline.  
+- Attach: click the clip icon to browse; drag files anywhere to reveal the overlay and drop to upload.  
+- Intent routing: leave on Auto or choose Fees, Scholarships, Timetable, Housing to bias answers.  
+- Contact staff: use the header “Contact” or fallback card for Email/WhatsApp/Ticket.  
 
-### License
+## Architecture
+- React + Vite frontend, single‑file chat UI (ChatWithGemini.jsx) managing stream, intent routing, files, and toasts.  
+- Google GenAI SDK with gemini‑2.5‑flash and Search grounding, plus Files API for media/PDF handling.  
+- Lightweight router that swaps system instructions per intent and softly augments the user prompt.  
+- Error/empty response handling triggers a human‑handoff card with configured actions.  
 
+## Folder Structure
+Adjust as needed for your project layout.  
+```
+.
+├─ src/
+│  ├─ ChatWithGemini.jsx      # Main UI, streaming, intents, files, contact, toasts
+│  └─ ...                     # Your other modules/assets
+├─ public/                    # Static assets
+├─ .env.example               # Copy of env variables (add one)
+├─ index.html
+├─ package.json
+└─ README.md
+```
+
+## Roadmap
+- Optional authentication and role‑based content.  
+- Persistent transcripts with export.  
+- Departmental knowledge connectors and richer intent models.  
+- Theming and accessibility refinements.  
+
+## Contributing
+Issues and pull requests are welcome; please propose UI/UX changes with before/after screenshots for clarity.  
+
+## License
+Choose and add a license (e.g., MIT, Apache‑2.0) and include the LICENSE file in the repo.  
+
+## Acknowledgements
+- Google GenAI SDK & Gemini 2.5 Flash  
+- Vite + React  
+- Everyone improving student support and accessibility . 
+```
