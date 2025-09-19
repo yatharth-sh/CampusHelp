@@ -83,11 +83,12 @@ function augmentUserPrompt(intentName, userText) {
   return `${userText}${hintLine}`;
 }
 
-// --- Styling ---
+// --- Styling (includes centered header brand + safer transcript gutters) ---
 const styles = `
 :root {
   --bg: #f7f7fb;
   --surface: #ffffff;
+  --surface-2: #fafafc;
   --surface-container: #f3f4f6;
   --outline: #e5e7eb;
   --text: #0b1220;
@@ -97,22 +98,31 @@ const styles = `
   --danger: #ef4444;
   --ring: #93c5fd;
   --shadow-soft: 0 1px 2px rgba(0,0,0,0.06), 0 8px 24px rgba(31,41,55,0.08);
+
   --radius-lg: 16px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
+  --radius-md: 12px;
 
-  --code-bg: #111827;
-  --code-border: #374151;
-  --code-fg: #e5e7eb;
+  --space-1: clamp(4px, 0.6vw, 8px);
+  --space-2: clamp(8px, 0.9vw, 12px);
+  --space-3: clamp(12px, 1.2vw, 16px);
+  --space-4: clamp(16px, 1.6vw, 20px);
+
+  --fs-12: clamp(11px, 1.1vw, 12px);
+  --fs-13: clamp(12px, 1.2vw, 13px);
+  --fs-14: clamp(13px, 1.4vw, 14px);
+  --fs-16: clamp(14px, 1.6vw, 16px);
+  --fs-18: clamp(16px, 2.0vw, 18px);
+  --fs-20: clamp(18px, 2.2vw, 20px);
+
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
 }
-
-html { color-scheme: light dark; }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0b1220;
     --surface: #0f172a;
+    --surface-2: #0d1222;
     --surface-container: #111827;
     --outline: #1f2937;
     --text: #e5e7eb;
@@ -120,18 +130,14 @@ html { color-scheme: light dark; }
     --primary: #8b95ff;
     --on-primary: #0b1020;
     --ring: #60a5fa;
-
-    --code-bg: #0b1020;
-    --code-border: #1f2937;
-    --code-fg: #e5e7eb;
   }
 }
 
 * { box-sizing: border-box; }
-
+html { color-scheme: light dark; }
 body {
   margin: 0;
-  font-family: Roboto, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+  font-family: Inter, Roboto, system-ui, -apple-system, Segoe UI, Arial, sans-serif;
   background:
     radial-gradient(1000px 500px at 10% -10%, rgba(79,70,229,0.08), transparent 60%),
     radial-gradient(900px 450px at 100% 0%, rgba(99,102,241,0.06), transparent 60%),
@@ -140,17 +146,20 @@ body {
 }
 
 .app {
-  max-width: 920px;
-  margin: 0 auto;
+  width: min(1100px, 92vw);
+  margin-inline: auto;
   display: grid;
   grid-template-rows: auto 1fr auto;
   height: 100dvh;
   gap: var(--space-2);
   padding: var(--space-3);
+  padding-top: calc(var(--space-3) + var(--safe-top));
 }
 
+/* Header (brand truly centered with absolute placement) */
 .header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
@@ -158,44 +167,77 @@ body {
   border: 1px solid var(--outline);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
+  position: relative;
 }
-.header h1 { font-size: 18px; font-weight: 700; margin: 0; }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+.brand h1 {
+  font-size: var(--fs-18);
+  font-weight: 700;
+  margin: 0;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: end;
+}
 .badge {
-  font-size: 12px;
+  font-size: var(--fs-12);
   color: var(--on-primary);
   background: var(--primary);
   padding: 2px 10px;
   border-radius: 999px;
 }
+.routeBadge {
+  font-size: var(--fs-12);
+  color: var(--on-primary);
+  background: var(--primary);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+@media (max-width: 640px) {
+  .header { grid-template-columns: 1fr; row-gap: var(--space-1); }
+  .header-right { justify-content: center; }
+  .brand { position: static; transform: none; }
+}
 
+/* Transcript (larger container padding + per-message gutters) */
 .transcript {
   border: 1px solid var(--outline);
   border-radius: var(--radius-lg);
-  padding: var(--space-3);
+  padding: clamp(20px, 3vw, 32px);
   overflow-y: auto;
   background: var(--surface);
   box-shadow: var(--shadow-soft);
+  scroll-padding-bottom: 120px;
+  overscroll-behavior: contain;
 }
-
 .message {
   margin: var(--space-2) 0 var(--space-3) 0;
-  display: flex;
-  gap: var(--space-3);
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: var(--space-2);
+  padding-inline: clamp(8px, 2vw, 28px);
+  align-items: start;
 }
-
-.role {
-  flex: 0 0 80px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
+.role { font-weight: 600; color: var(--text-muted); font-size: var(--fs-14); }
 .bubble {
-  flex: 1;
   padding: var(--space-3);
   border-radius: var(--radius-lg);
   border: 1px solid var(--outline);
   background: var(--surface-container);
   overflow-x: auto;
+  font-size: var(--fs-14);
+  line-height: 1.55;
 }
 .user .bubble {
   background: color-mix(in srgb, var(--primary) 6%, var(--surface-container));
@@ -205,45 +247,75 @@ body {
   background: color-mix(in srgb, var(--danger) 8%, var(--surface-container));
   border-color: color-mix(in srgb, var(--danger) 35%, var(--outline));
 }
+@media (max-width: 720px) {
+  .message { grid-template-columns: 1fr; gap: var(--space-1); }
+  .role { display: none; }
+}
 
+/* Markdown */
 .markdown-container pre {
-  background-color: var(--code-bg);
-  border-radius: 12px;
+  background-color: var(--surface-2);
+  border-radius: var(--radius-md);
   padding: var(--space-3);
   overflow-x: auto;
-  border: 1px solid var(--code-border);
+  border: 1px solid var(--outline);
 }
 .markdown-container code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-  font-size: 13px;
-  color: var(--code-fg);
+  font-size: var(--fs-13);
 }
 
+/* Footer Composer (minimal pill with icons) */
 .footer {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
   gap: var(--space-2);
 }
-
-.inputBox {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  border: 1px solid var(--outline);
-  border-radius: var(--radius-lg);
-  padding: var(--space-2);
+.composer {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 4px;
   background: var(--surface);
+  border: 1px solid var(--outline);
+  border-radius: 999px;
+  padding: 6px 8px;
   box-shadow: var(--shadow-soft);
 }
-
-/* Removed persistent dropzone; we show an overlay instead */
-.adderbar {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: space-between;
+.textinput {
+  width: 100%;
+  max-height: 30vh;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-14);
+  line-height: 1.45;
+  padding: 6px 8px;
 }
-.adderbar .left { display: flex; gap: 8px; align-items: center; }
+.textinput::placeholder { color: var(--text-muted); }
+.iconbtn {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.iconbtn:hover { background: var(--surface-container); border-color: var(--outline); }
+.iconbtn:disabled { opacity: 0.6; cursor: not-allowed; }
+.sendbtn {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+.sendbtn:hover { filter: brightness(0.98); }
+
+/* Chips */
 .filechips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip {
   display: inline-flex;
@@ -253,81 +325,34 @@ body {
   background: var(--surface-container);
   border: 1px solid var(--outline);
   border-radius: 999px;
-  font-size: 12px;
+  font-size: var(--fs-12);
 }
 .chip button { all: unset; cursor: pointer; color: var(--text-muted); padding-left: 4px; }
 
-.textarea {
-  flex: 1;
-  min-height: 48px;
-  max-height: 200px;
-  resize: vertical;
-  border: 1px solid var(--outline);
-  border-radius: 12px;
-  outline: none;
-  padding: 10px 12px;
-  font-size: 14px;
-  color: var(--text);
-  background: var(--surface-container);
-}
-
-.actions { display: flex; align-items: center; gap: var(--space-2); }
-
-button {
-  appearance: none;
-  border: 1px solid var(--outline);
-  background: var(--primary);
-  color: var(--on-primary);
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--shadow-soft);
-  transition: transform 0.06s ease, box-shadow 0.2s ease, background 0.2s ease;
-}
-button:hover { transform: translateY(-1px); }
-button:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--ring); }
-button.secondary { background: var(--surface); color: var(--text); }
-button.ghost { background: transparent; border-color: var(--outline); color: var(--text); }
-button:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.hint { font-size: 12px; color: var(--text-muted); margin-top: 2px; text-align: center; }
-.typing { font-size: 12px; color: var(--text-muted); }
-
-/* Minimal intent selector + always-on contact button */
-.intentbar { display: flex; align-items: center; gap: 8px; }
-.intentselect {
-  appearance: none;
-  background: var(--surface-container);
-  border: 1px solid var(--outline);
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 12px;
-  color: var(--text);
-}
-.small { font-size: 12px; color: var(--text-muted); }
-
-.routeBadge {
-  font-size: 12px;
-  color: var(--on-primary);
-  background: var(--primary);
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-
+/* Contact fallback */
 .contact {
   border: 1px dashed var(--outline);
   border-radius: 12px;
-  padding: 10px;
+  padding: var(--space-2);
   background: color-mix(in srgb, var(--surface) 92%, var(--primary));
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
 }
-.contact .cta { display: flex; gap: 8px; }
+.contact .cta { display: flex; gap: var(--space-2); }
+.small { font-size: var(--fs-12); color: var(--text-muted); }
 
-/* Minimal inline contact menu for the footer actions */
+/* Minimal inline contact menu */
+button.ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--outline);
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: var(--fs-12);
+}
 .contact-mini { position: relative; }
 .contactmenu {
   position: absolute;
@@ -342,16 +367,19 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   box-shadow: var(--shadow-soft);
   z-index: 10;
 }
-.contactmenu button { padding: 6px 10px; font-size: 12px; }
+.contactmenu button { padding: 6px 10px; font-size: var(--fs-12); }
 
 /* Toasts */
 .toastwrap {
   position: fixed;
-  bottom: 16px;
+  bottom: calc(16px + var(--safe-bottom));
   right: 16px;
   display: grid;
   gap: 8px;
   z-index: 60;
+}
+@media (max-width: 640px) {
+  .toastwrap { right: 50%; transform: translateX(50%); }
 }
 .toast {
   background: var(--surface);
@@ -361,7 +389,7 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   padding: 10px 12px;
   border-radius: 12px;
   box-shadow: var(--shadow-soft);
-  font-size: 13px;
+  font-size: var(--fs-13);
 }
 .toast.error { border-left-color: var(--danger); }
 
@@ -381,20 +409,19 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
   border: 2px dashed color-mix(in srgb, var(--primary) 60%, var(--outline));
   background: color-mix(in srgb, var(--surface) 75%, var(--primary));
   color: var(--text);
-  padding: 28px 36px;
+  padding: 24px 28px;
   border-radius: 16px;
   box-shadow: var(--shadow-soft);
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--fs-16);
 }
 `;
 
-// --- Component ---
 const initialWelcome = [
   {
     role: "assistant",
     text:
-      "Hi! I’m CampusHelp. Attach PDFs or images with the Add files button, or just start asking questions.",
+      "Hi! I’m CampusHelp. Attach PDFs or images with the clip icon, or just start asking questions.",
   },
 ];
 
@@ -423,7 +450,7 @@ function AIStudentHelpdesk() {
   const transcriptRef = useRef(null);
   const streamingRef = useRef(false);
 
-  // Intent routing state
+  // Intent routing
   const [activeIntent, setActiveIntent] = useState("auto");
   const [lastDetectedIntent, setLastDetectedIntent] = useState("unknown");
   const [intentConfidence, setIntentConfidence] = useState(0);
@@ -432,6 +459,16 @@ function AIStudentHelpdesk() {
   const [showContact, setShowContact] = useState(false);
   const [showContactMenu, setShowContactMenu] = useState(false);
   const [toasts, setToasts] = useState([]);
+
+  // Auto-resize textarea
+  const inputRef = useRef(null);
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "0px";
+    const next = Math.min(280, Math.max(40, el.scrollHeight));
+    el.style.height = next + "px";
+  }, [input]);
 
   // Persist messages
   useEffect(() => {
@@ -467,7 +504,7 @@ function AIStudentHelpdesk() {
     window.setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), ttl);
   };
 
-  // Global drag-and-drop listeners to show/hide overlay
+  // Global drag-and-drop listeners
   useEffect(() => {
     const hasFiles = (e) => {
       const t = e?.dataTransfer?.types;
@@ -490,7 +527,6 @@ function AIStudentHelpdesk() {
       }
     };
     const onDragLeave = (e) => {
-      // When leaving window bounds
       const { clientX, clientY } = e;
       if (clientX <= 0 || clientY <= 0 || clientX >= window.innerWidth || clientY >= window.innerHeight) {
         setDragOver(false);
@@ -614,6 +650,26 @@ function AIStudentHelpdesk() {
     return recent.slice(0, 1800);
   };
 
+  const toContents = (history) =>
+    history
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.text || "" }] }));
+
+  const extractText = (chunk) => {
+    try {
+      if (!chunk) return "";
+      if (typeof chunk.text === "string" && chunk.text.length) return chunk.text;
+      const cands = Array.isArray(chunk.candidates) ? chunk.candidates : [];
+      if (cands.length) {
+        const parts = cands?.content?.parts;
+        if (Array.isArray(parts)) return parts.map((p) => p?.text || "").join("");
+      }
+      return "";
+    } catch {
+      return "";
+    }
+  };
+
   const sendMessage = async () => {
     const trimmed = input.trim();
     if (!trimmed || isStreaming) return;
@@ -638,12 +694,10 @@ function AIStudentHelpdesk() {
       const systemInstruction = getSystemForIntent(selected);
       const userAugmented = augmentUserPrompt(selected, trimmed);
 
-      const toContents = (history) =>
-        history
-          .filter((m) => m.role === "user" || m.role === "assistant")
-          .map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.text || "" }] }));
-
-      const contents = [...toContents(nextMessages.slice(0, -1)), createUserContent([...fileParts, "\n\n", userAugmented])];
+      const contents = [
+        ...toContents(nextMessages.slice(0, -1)),
+        createUserContent([...fileParts, "\n\n", userAugmented]),
+      ];
 
       const response = await ai.models.generateContentStream({
         model: MODEL_NAME,
@@ -654,20 +708,7 @@ function AIStudentHelpdesk() {
       let full = "";
       for await (const chunk of response) {
         if (!streamingRef.current) break;
-        const piece = (() => {
-          try {
-            if (!chunk) return "";
-            if (typeof chunk.text === "string" && chunk.text.length) return chunk.text;
-            const cands = Array.isArray(chunk.candidates) ? chunk.candidates : [];
-            if (cands.length) {
-              const parts = cands?.content?.parts;
-              if (Array.isArray(parts)) return parts.map((p) => p?.text || "").join("");
-            }
-            return "";
-          } catch {
-            return "";
-          }
-        })();
+        const piece = extractText(chunk);
         if (!piece) continue;
         full += piece;
         setMessages((prev) => {
@@ -684,10 +725,7 @@ function AIStudentHelpdesk() {
       if (!full) {
         setMessages((prev) => [
           ...prev,
-          {
-            role: "error",
-            text: "The model returned empty text for this request. Try rephrasing or asking a more specific question.",
-          },
+          { role: "error", text: "The model returned empty text for this request. Try rephrasing or asking a more specific question." },
         ]);
         setShowContact(true);
       }
@@ -730,16 +768,10 @@ function AIStudentHelpdesk() {
 
       <div className="app">
         <div className="header">
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="brand">
             <svg
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
               style={{ color: "var(--primary)", background: "color-mix(in srgb, var(--primary) 12%, var(--surface))", borderRadius: 12, padding: 6 }}
             >
               <path d="M12 20.5c-5.523 0-10-4.477-10-10s4.477-10 10-10 10 4.477 10 10-4.477 10-10 10z"></path>
@@ -748,13 +780,60 @@ function AIStudentHelpdesk() {
             </svg>
             <h1>CampusHelp</h1>
           </div>
-          <div>
+          <div className="header-right">
+            <button type="button" className="ghost" onClick={resetChat} title="Reset">
+              Reset
+            </button>
             <span className="badge">2.5 Flash + Search</span>
-          </div>
-          <div style={{ marginLeft: "auto" }}>
             <span className="routeBadge">
               {activeIntent !== "auto" ? INTENT_DEFS[activeIntent].label : INTENT_DEFS[lastDetectedIntent]?.label || "Auto"}
             </span>
+            <div className="contact-mini">
+              <button type="button" className="ghost" onClick={() => setShowContactMenu((v) => !v)} title="Contact staff">
+                Contact
+              </button>
+              {showContactMenu && (
+                <div className="contactmenu">
+                  {!!CONTACT_CFG.email && (
+                    <button type="button" className="ghost" onClick={() => { copyHelpdeskEmail(); setShowContactMenu(false); }}>
+                      Email
+                    </button>
+                  )}
+                  {!!CONTACT_CFG.whatsapp && (
+                    <button
+                      type="button"
+                      className="ghost"
+                      onClick={() => {
+                        const text = `Student query:\n${messages[messages.length - 1]?.text || ""}\n\nTranscript:\n${buildTranscriptPreview()}`;
+                        openWhatsApp(text);
+                        setShowContactMenu(false);
+                      }}
+                    >
+                      WhatsApp
+                    </button>
+                  )}
+                  {!!CONTACT_CFG.webhook && (
+                    <button
+                      type="button"
+                      className="ghost"
+                      onClick={async () => {
+                        const payload = {
+                          source: "CampusHelp",
+                          lastMessage: messages[messages.length - 1]?.text || "",
+                          transcript: buildTranscriptPreview(),
+                          intent: { selected: activeIntent, detected: lastDetectedIntent, confidence: intentConfidence },
+                          timestamp: new Date().toISOString(),
+                        };
+                        await postHelpdesk(payload);
+                        setShowContactMenu(false);
+                      }}
+                    >
+                      Create ticket
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -777,184 +856,129 @@ function AIStudentHelpdesk() {
         </div>
 
         <div className="footer">
-          <div className="inputBox">
-            {/* Minimal intent selector */}
-            <div className="intentbar">
-              <select
-                className="intentselect"
-                value={activeIntent}
-                onChange={(e) => setActiveIntent(e.target.value)}
-                disabled={isStreaming || isUploading}
-                aria-label="Intent"
-              >
-                <option value="auto">Auto</option>
-                <option value="fees">Fees</option>
-                <option value="scholarships">Scholarships</option>
-                <option value="timetable">Timetable</option>
-                <option value="housing">Housing</option>
-              </select>
-              <span className="small">{activeIntent === "auto" ? (intentConfidence > 0 ? "Auto" : "Auto…") : "Manual"}</span>
-            </div>
-
-            {/* Add files + Reset + file chips */}
-            <div className="adderbar">
-              <div className="left">
-                <button type="button" className="secondary" onClick={onChooseFiles} disabled={isUploading || isStreaming}>
-                  {isUploading ? "Adding…" : "Add files"}
-                </button>
-                <button type="button" className="secondary" onClick={resetChat} disabled={isStreaming} title="Clear messages">
-                  Reset
-                </button>
-              </div>
-            </div>
-
-            <input ref={fileInputRef} type="file" multiple accept=".pdf,image/*" onChange={onFileChange} style={{ display: "none" }} />
-
-            {!!uploads.length && (
-              <div className="filechips">
-                {uploads.map((f) => (
-                  <span key={f.uri} className="chip">
-                    {f.name}
-                    <button onClick={() => removeUpload(f.uri)} aria-label="Remove">
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Contact fallback (only on low-confidence/empty/error) */}
-            {showContact && (
-              <div className="contact">
-                <div className="small">Need a human? Contact staff with your last message and a short transcript.</div>
-                <div className="cta">
-                  {!!CONTACT_CFG.email && (
-                    <button type="button" className="secondary" onClick={copyHelpdeskEmail}>
-                      Email helpdesk
-                    </button>
-                  )}
-                  {!!CONTACT_CFG.whatsapp && (
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => {
-                        const text = `Student query:\n${messages[messages.length - 1]?.text || ""}\n\nTranscript:\n${buildTranscriptPreview()}`;
-                        openWhatsApp(text);
-                      }}
-                    >
-                      WhatsApp
-                    </button>
-                  )}
-                  {!!CONTACT_CFG.webhook && (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const payload = {
-                          source: "CampusHelp",
-                          lastMessage: messages[messages.length - 1]?.text || "",
-                          transcript: buildTranscriptPreview(),
-                          intent: { selected: activeIntent, detected: lastDetectedIntent, confidence: intentConfidence },
-                          timestamp: new Date().toISOString(),
-                        };
-                        await postHelpdesk(payload);
-                      }}
-                      disabled={isStreaming || isUploading}
-                    >
-                      Create ticket
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
+          {/* Minimal pill composer */}
+          <div className="composer">
             <textarea
-              className="textarea"
-              placeholder="Ask CampusHelp"
+              ref={inputRef}
+              className="textinput"
+              placeholder="Message CampusHelp"
               value={input}
-              onChange={(e) => {
-                setInput(e.target.value);
-                setShowContact(false);
-              }}
+              onChange={(e) => { setInput(e.target.value); setShowContact(false); }}
               onKeyDown={onKeyDown}
+              rows={1}
               disabled={isStreaming || isUploading}
             />
-          </div>
-
-          <div className="actions">
+            {/* Attach icon */}
+            <button
+              type="button"
+              className="iconbtn"
+              onClick={onChooseFiles}
+              disabled={isUploading || isStreaming}
+              aria-label="Add files"
+              title="Add files"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                   strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.2a2 2 0 1 1-2.83-2.83l8.49-8.49"/>
+              </svg>
+            </button>
+            {/* Send icon */}
             {isStreaming ? (
               <button
                 type="button"
-                onClick={() => {
-                  streamingRef.current = false;
-                  setIsStreaming(false);
-                  setTyping(false);
-                }}
+                className="iconbtn sendbtn"
+                onClick={() => { streamingRef.current = false; setIsStreaming(false); setTyping(false); }}
+                aria-label="Stop"
+                title="Stop"
               >
-                Stop
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                     strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+                </svg>
               </button>
             ) : (
-              <button type="button" onClick={sendMessage} disabled={!input.trim() || isUploading}>
-                Send
+              <button
+                type="button"
+                className="iconbtn sendbtn"
+                onClick={sendMessage}
+                disabled={!input.trim() || isUploading}
+                aria-label="Send"
+                title="Send"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                     strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 2L11 13"></path>
+                  <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
+                </svg>
               </button>
             )}
-
-            {/* Minimal always-available Contact staff */}
-            <div className="contact-mini">
-              <button type="button" className="secondary ghost" onClick={() => setShowContactMenu((v) => !v)} title="Contact staff">
-                Contact staff
-              </button>
-              {showContactMenu && (
-                <div className="contactmenu">
-                  {!!CONTACT_CFG.email && (
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => {
-                        copyHelpdeskEmail();
-                        setShowContactMenu(false);
-                      }}
-                    >
-                      Email
-                    </button>
-                  )}
-                  {!!CONTACT_CFG.whatsapp && (
-                    <button
-                      type="button"
-                      className="secondary"
-                      onClick={() => {
-                        const text = `Student query:\n${messages[messages.length - 1]?.text || ""}\n\nTranscript:\n${buildTranscriptPreview()}`;
-                        openWhatsApp(text);
-                        setShowContactMenu(false);
-                      }}
-                    >
-                      WhatsApp
-                    </button>
-                  )}
-                  {!!CONTACT_CFG.webhook && (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const payload = {
-                          source: "CampusHelp",
-                          lastMessage: messages[messages.length - 1]?.text || "",
-                          transcript: buildTranscriptPreview(),
-                          intent: { selected: activeIntent, detected: lastDetectedIntent, confidence: intentConfidence },
-                          timestamp: new Date().toISOString(),
-                        };
-                        await postHelpdesk(payload);
-                        setShowContactMenu(false);
-                      }}
-                    >
-                      Create ticket
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
-        </div>
 
-        <div className="hint">Uses Google Search grounding with Gemini 2.5 Flash for fresher, more reliable answers.</div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".pdf,image/*"
+            onChange={onFileChange}
+            style={{ display: "none" }}
+          />
+
+          {!!uploads.length && (
+            <div className="filechips">
+              {uploads.map((f) => (
+                <span key={f.uri} className="chip">
+                  {f.name}
+                  <button onClick={() => removeUpload(f.uri)} aria-label="Remove">×</button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Contact fallback (only on low-confidence/empty/error) */}
+          {showContact && (
+            <div className="contact">
+              <div className="small">Need a human? Contact staff with your last message and a short transcript.</div>
+              <div className="cta">
+                {!!CONTACT_CFG.email && (
+                  <button type="button" className="ghost" onClick={copyHelpdeskEmail}>
+                    Email helpdesk
+                  </button>
+                )}
+                {!!CONTACT_CFG.whatsapp && (
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => {
+                      const text = `Student query:\n${messages[messages.length - 1]?.text || ""}\n\nTranscript:\n${buildTranscriptPreview()}`;
+                      openWhatsApp(text);
+                    }}
+                  >
+                    WhatsApp
+                  </button>
+                )}
+                {!!CONTACT_CFG.webhook && (
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={async () => {
+                      const payload = {
+                        source: "CampusHelp",
+                        lastMessage: messages[messages.length - 1]?.text || "",
+                        transcript: buildTranscriptPreview(),
+                        intent: { selected: activeIntent, detected: lastDetectedIntent, confidence: intentConfidence },
+                        timestamp: new Date().toISOString(),
+                      };
+                      await postHelpdesk(payload);
+                    }}
+                    disabled={isStreaming || isUploading}
+                  >
+                    Create ticket
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Toasts */}
