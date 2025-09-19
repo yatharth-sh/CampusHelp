@@ -34,20 +34,19 @@ The UI centers the brand, uses a minimal pill composer with icon actions, and ad
 - Centered branding, responsive spacing via clamp, and consistent gutters across the transcript. 
 
 ## Demo
-
+```
 - Local preview: run the dev server, upload a PDF or image, and ask follow‑up questions about specific sections or visuals.   
 - Try switching intent from Auto to Fees or Timetable to see routing steer the reply style and guidance.   
 - Use the Contact menu to copy the helpdesk email or open WhatsApp with a prefilled transcript snippet. 
 
 ## Quick Start
-
+```
 Prerequisites: Node.js 16+ and a Google Gemini API key. 
-
+```
 1. Install 
 ```
 npm install
 ```
-
 2. Configure environment (see “Environment Variables”).  
   
 3. Run in development. 
@@ -66,28 +65,28 @@ npm run preview
 ```
 
 ## Environment Variables
-
+```
 Create a .env (or .env.local) in the project root. 
 
 - VITE_GEMINI_API_KEY=your_api_key_here   
 - VITE_HELPDESK_EMAIL=helpdesk@university.edu  (used for copy‑to‑clipboard Email)   
 - VITE_WHATSAPP_NUMBER=15551234567  (international format without plus)   
 - VITE_HELPDESK_WEBHOOK_URL=https://your.ticket.endpoint  (optional POST endpoint for creating tickets) 
-
+```
 ## Usage
-
+```
 - Composer: type to auto‑expand, Enter to send, Shift+Enter for newline; attach with the clip icon.   
 - Drag and drop: drag files anywhere to reveal the overlay; drop to upload and ask questions about them.   
 - Intent routing: leave on Auto or select a route to focus guidance and next steps for that domain.  
 - Contact staff: use the header Contact menu or the fallback card when detection confidence is low. 
-
+```
 ## Architecture
-
+```
 - React + Vite frontend with a single main component handling streaming, intents, files, and contact actions.  
 - Google GenAI SDK with gemini‑2.5‑flash and Search grounding; Files API for PDF/image ingestion.  
 - Lightweight router swaps system instructions and softly augments the user prompt per intent.  
 - Fallback logic shows a human‑handoff card on low‑confidence, empty, or errored responses.
-
+```
 ## Folder Structure
 
 ```
@@ -101,19 +100,19 @@ Create a .env (or .env.local) in the project root.
 ├─ package.json
 └─ README.md
 ```
-[attached_file:1]
+
 
 ## Roadmap
-
+```
 - Optional authentication and role‑based content access.   
 - Persistent transcripts with export and search.   
 - Departmental knowledge connectors and richer intent models.   - Theming and accessibility refinements. 
-
+```
 ## Contributing
-
+```
 Issues and PRs are welcome; include before/after screenshots for UI changes and describe intent or accessibility impacts
-
+```
 ## License
-
+```
 Add a LICENSE file (e.g., MIT or Apache‑2.0) and update this section accordingly
 ```
