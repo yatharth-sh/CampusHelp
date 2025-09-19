@@ -33,8 +33,8 @@ The UI centers the brand, uses a minimal pill composer with icon actions, and ad
 - Google Search grounding and safety settings enabled for fresher, safer answers.   
 - Centered branding, responsive spacing via clamp, and consistent gutters across the transcript. 
 
-## Demo
 ```
+## Demo
 - Local preview: run the dev server, upload a PDF or image, and ask follow‑up questions about specific sections or visuals.   
 - Try switching intent from Auto to Fees or Timetable to see routing steer the reply style and guidance.   
 - Use the Contact menu to copy the helpdesk email or open WhatsApp with a prefilled transcript snippet. 
